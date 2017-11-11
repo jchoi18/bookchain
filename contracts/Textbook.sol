@@ -1,57 +1,55 @@
 pragma solidity ^0.4.0;
 
-
 contract Textbook {
+    
     struct Book {
-    string isbn;
-    address owner;
-    address holder;
-    uint id;
+        string isbn;
+        address owner;
     }
-
-    mapping (bytes32 => Book) private books;
-    mapping (bytes32 => address) private students;
-    address[] studentAddresses;
-
+    
+    mapping (string => uint) private balance;
+    mapping (string => Book) private books;
+    mapping (bytes32 => bool) private books_proof;
+    mapping (address => bool) private students;
+    mapping (string => address) private owners;
+    mapping (string => address) private holders;
+    
     // store a proof of existence in the contract state
-    function addBook(bytes32 bookHash, address self) {
-        books[bookHash] = true;
-        var selfHash = sha256(self);
-        if (students[selfHash] != self){
-            students[selfHash] = self;
-        }
+    function addBook(string isbn, address self) {
+        var book = Book(isbn, self);
+        books[isbn] = book;
+        students[self] = true;
+        owners[isbn] = self;
     }
+    
     // calculate and store the proof for a document
-//      function notarize(Book book) {
-//        var bookHash = hashFor(book);
-//        addBook(bookHash);
-//      }
+    function notarize(string isbn) {
+        addBook(isbn, msg.sender);
+        books_proof[hashFor(isbn)] = true;
+    }
+    
     // helper function to get a document's sha256
-    function hashFor(Book book) constant returns (bytes32) {
-        var s = book.isbn + book.owner;
-        return sha256(s);
+    function hashFor(string isbn) constant returns (bytes32) {
+        return sha256(isbn);
     }
+    
     // check if a document has been notarized
-    function isOwner(Book book) constant returns (bool) {
-        var hash = hashFor(book);
-        return books[hash];
+    function isOwner(string book) constant returns (bool) {
+        return books[book].owner == msg.sender;
     }
 
-    function bookExists(string isbn) constant returns (address) {
-        var hash = "";
-        for (uint i = 0; i < studentAddresses.length; i++) {
-            hash = sha256(isbn + studentAddresses[i]);
-            if (books[hash]){
-                return books[hash];
-            }
+    function bookExists(string isbn) constant returns (bool) {
+        bytes32 hash = hashFor(isbn);
+        if (books_proof[hash]) {
+            return books_proof[hash];
         }
-        return 0;
+        return false;
     }
 
-    function transfer(address _to, uint256 _value) {
-        require(balanceOf[msg.sender] >= _value);           // Check if the sender has enough
-        require(balanceOf[_to] + _value >= balanceOf[_to]); // Check for overflows
-        balanceOf[msg.sender] -= _value;                    // Subtract from the sender
-        balanceOf[_to] += _value;                           // Add the same to the recipient
-    }
+    /*function transfer(address _to, uint256 _value) {
+        require(balance[msg.sender] >= _value);           // Check if the sender has enough
+        require(balance[_to] + _value >= balance[_to]); // Check for overflows
+        balance[msg.sender] -= _value;                    // Subtract from the sender
+        balance[_to] += _value;                           // Add the same to the recipient
+    }*/
 }
