@@ -1,4 +1,4 @@
-# bookchain
+# BookChain
 
 truffle develop
 truffle compile

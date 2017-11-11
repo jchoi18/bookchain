@@ -1,0 +1,37 @@
+body {
+  background-color: rgb(20,20,20);
+}
+
+#content {
+  margin: 10% 0 0 20%;
+}
+
+.main {
+  font-size: 60px;
+  font-weight: 700;
+  color: white;
+}
+
+.text {
+  font-size: 20px;
+  font-weight: 200;
+  color: white;
+  border-right: .1em solid white;
+  width: 29.2em;
+  margin-top: 40px;
+  white-space: nowrap;
+  overflow: hidden;
+  -webkit-animation: typing 5s steps(100, end),
+  blink-caret .3s step-end infinite alternate;
+}
+
+.btn-light {
+  margin-right: 10px;
+}
+
+.bc {
+  color: yellow;
+}
+
+@-webkit-keyframes typing { from { width: 0; } }
+@-webkit-keyframes blink-caret { 50% { border-color: transparent; } }
