@@ -15,7 +15,7 @@ contract Textbook {
     mapping (string => address) private holders;
     
     // store a proof of existence in the contract state
-    function addBook(string isbn) {
+    function addBook(string isbn) private {
         var book = Book(isbn, msg.sender);
         books[isbn] = book;
         students[msg.sender] = true;
