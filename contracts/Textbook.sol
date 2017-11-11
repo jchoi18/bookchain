@@ -15,16 +15,16 @@ contract Textbook {
     mapping (string => address) private holders;
     
     // store a proof of existence in the contract state
-    function addBook(string isbn, address self) {
-        var book = Book(isbn, self);
+    function addBook(string isbn) {
+        var book = Book(isbn, msg.sender);
         books[isbn] = book;
-        students[self] = true;
-        owners[isbn] = self;
+        students[msg.sender] = true;
+        owners[isbn] = msg.sender;
     }
     
     // calculate and store the proof for a document
     function notarize(string isbn) {
-        addBook(isbn, msg.sender);
+        addBook(isbn);
         books_proof[hashFor(isbn)] = true;
     }
     
