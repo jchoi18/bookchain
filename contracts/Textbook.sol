@@ -4,41 +4,44 @@ contract Textbook {
     
     struct Book {
         string isbn;
-        address owner;
     }
     
-    mapping (string => uint) private balance;
-    mapping (string => Book) private books;
+    mapping (bytes32 => Book) public books;
     mapping (bytes32 => bool) private books_proof;
-    mapping (address => bool) private students;
-    mapping (string => address) private owners;
-    mapping (string => address) private holders;
-    
-    // store a proof of existence in the contract state
-    function addBook(string isbn) private {
-        var book = Book(isbn, msg.sender);
-        books[isbn] = book;
-        students[msg.sender] = true;
-        owners[isbn] = msg.sender;
+    mapping (bytes32 => address) public owners; // map book to owners
+    mapping (bytes32 => address) public holders; // map book to holders
+
+    function getOwner(string isbn) public constant returns (address) {
+        return owners[hashFor(isbn)];
+    }
+    function getHolder(string isbn) public constant returns (address) {
+        return holders[hashFor(isbn)];
+    }
+
+    function addBookHelper(string isbn) private {
+        var book = Book(isbn);
+        bytes32 hash = hashFor(isbn);
+        books[hash] = book;
+        owners[hash] = msg.sender;
+        holders[hash] = msg.sender;
     }
     
-    // calculate and store the proof for a document
-    function notarize(string isbn) {
-        addBook(isbn);
+    function addBook(string isbn) public {
+        addBookHelper(isbn);
         books_proof[hashFor(isbn)] = true;
     }
     
     // helper function to get a document's sha256
-    function hashFor(string isbn) constant returns (bytes32) {
+    function hashFor(string isbn) private pure returns (bytes32) {
         return sha256(isbn);
     }
     
     // check if a document has been notarized
-    function isOwner(string book) constant returns (bool) {
-        return books[book].owner == msg.sender;
+    function isOwner(string isbn) public constant returns (bool) {
+        return owners[hashFor(isbn)] == msg.sender;
     }
 
-    function bookExists(string isbn) constant returns (bool) {
+    function bookExists(string isbn) public constant returns (bool) {
         bytes32 hash = hashFor(isbn);
         if (books_proof[hash]) {
             return books_proof[hash];
@@ -46,10 +49,13 @@ contract Textbook {
         return false;
     }
 
-    /*function transfer(address _to, uint256 _value) {
-        require(balance[msg.sender] >= _value);           // Check if the sender has enough
-        require(balance[_to] + _value >= balance[_to]); // Check for overflows
-        balance[msg.sender] -= _value;                    // Subtract from the sender
-        balance[_to] += _value;                           // Add the same to the recipient
-    }*/
+    function transfer(address _to, string isbn) public {
+        bytes32 bookHash = hashFor(isbn);
+        // check that book exists
+        require(books_proof[bookHash]);
+        // check that book is held by the current holder
+        require(holders[bookHash] == msg.sender);
+        // update book holder
+        holders[bookHash] = _to;
+    }
 }
